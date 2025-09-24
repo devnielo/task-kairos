@@ -7,14 +7,21 @@ module.exports = {
   },
   parser: '@typescript-eslint/parser',
   parserOptions: {
+    tsconfigRootDir: __dirname,
     project: ['./tsconfig.json'],
     sourceType: 'module',
     ecmaVersion: 'latest',
   },
   settings: {
+    'import/core-modules': ['crypto'],
     'import/resolver': {
       typescript: {
-        project: './tsconfig.json',
+        project: ['tsconfig.json'],
+        tsconfigRootDir: __dirname,
+        alwaysTryTypes: true,
+      },
+      node: {
+        extensions: ['.js', '.ts'],
       },
     },
   },
@@ -33,6 +40,9 @@ module.exports = {
       'error',
       { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
     ],
+    'import/no-unresolved': ['error', { ignore: ['^node:', '^crypto$'] }],
+    'import/no-named-as-default': 'off',
+    'import/no-named-as-default-member': 'off',
     'import/order': [
       'error',
       {
@@ -46,6 +56,7 @@ module.exports = {
             position: 'after',
           },
         ],
+        pathGroupsExcludedImportTypes: ['builtin'],
         warnOnUnassignedImports: true,
       },
     ],

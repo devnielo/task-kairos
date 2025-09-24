@@ -1,5 +1,4 @@
 import path from 'node:path';
-
 import swaggerJsdoc from 'swagger-jsdoc';
 
 const swaggerDefinition = {

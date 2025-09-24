@@ -1,5 +1,4 @@
-import { Task, TaskStatus } from '@/domain/entities/task';
-import { CreateImageVariantInput } from '@/domain/entities/image';
+import { Task, TaskImage, TaskStatus } from '@/domain/entities/task';
 
 export interface CreateTaskParams {
   originalPath: string;
@@ -9,7 +8,7 @@ export interface CreateTaskParams {
 export interface UpdateTaskParams {
   status?: TaskStatus;
   error?: string;
-  images?: CreateImageVariantInput[];
+  images?: TaskImage[];
   updatedAt?: Date;
 }
 
