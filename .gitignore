@@ -1,9 +1,11 @@
 node_modules/
+package-lock.json
 dist/
 .env
 .env.local
 coverage/
 logs/
 storage/output/
+!storage/output/.gitkeep
 .DS_Store
 *.log

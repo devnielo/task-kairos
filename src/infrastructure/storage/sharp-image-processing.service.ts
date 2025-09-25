@@ -34,6 +34,36 @@ const ensureDirectory = async (directoryPath: string): Promise<void> => {
   await fs.mkdir(directoryPath, { recursive: true });
 };
 
+const resolveLocalPath = async (originalPath: string): Promise<string> => {
+  const sanitizedOriginal = originalPath.trim();
+  const candidates: string[] = [];
+
+  if (path.isAbsolute(sanitizedOriginal)) {
+    candidates.push(sanitizedOriginal);
+
+    const withoutLeadingSlash = sanitizedOriginal.replace(/^[/\\]+/, '');
+    const normalized = withoutLeadingSlash.startsWith('input/')
+      ? withoutLeadingSlash.replace(/^input[/\\]/, '')
+      : withoutLeadingSlash;
+
+    candidates.push(path.join(env.storage.inputDir, normalized));
+  } else {
+    const normalizedRelative = sanitizedOriginal.replace(/^input[/\\]/, '');
+    candidates.push(path.join(env.storage.inputDir, normalizedRelative));
+  }
+
+  for (const candidate of candidates) {
+    try {
+      await fs.access(candidate);
+      return candidate;
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error(`Source image not found for path: ${originalPath}`);
+};
+
 export class SharpImageProcessingService implements ImageProcessingService {
   async process(params: {
     taskId: string;
@@ -51,6 +81,8 @@ export class SharpImageProcessingService implements ImageProcessingService {
 
     const baseFileName = this.resolveBaseName(originalPath);
 
+    await ensureDirectory(env.storage.outputDir);
+
     const variants: CreateImageVariantInput[] = [];
 
     for (const resolution of resolutions) {
@@ -60,17 +92,24 @@ export class SharpImageProcessingService implements ImageProcessingService {
         selectedFormat,
       );
 
+      const fileName = `${hash}.${this.extensionFromFormat(selectedFormat)}`;
+      const outputSubdir = path.join(
+        env.storage.outputDir,
+        baseFileName,
+        resolution.toString(),
+      );
+
+      await ensureDirectory(outputSubdir);
+
+      const absolutePath = path.join(outputSubdir, fileName);
+      await fs.writeFile(absolutePath, buffer);
+
       const relativePath = path.posix.join(
         '/output',
         baseFileName,
         resolution.toString(),
-        `${hash}.${this.extensionFromFormat(selectedFormat)}`,
+        fileName,
       );
-
-      const absolutePath = path.join(env.storage.outputDir, relativePath);
-
-      await ensureDirectory(path.dirname(absolutePath));
-      await fs.writeFile(absolutePath, buffer);
 
       variants.push({
         taskId,
@@ -93,9 +132,7 @@ export class SharpImageProcessingService implements ImageProcessingService {
       return Buffer.from(response.data);
     }
 
-    const absolutePath = path.isAbsolute(originalPath)
-      ? originalPath
-      : path.join(env.storage.inputDir, originalPath);
+    const absolutePath = await resolveLocalPath(originalPath);
 
     return fs.readFile(absolutePath);
   }

@@ -26,6 +26,10 @@ export interface EnvConfig {
   queue: {
     name: string;
   };
+  pricing: {
+    min: number;
+    max: number;
+  };
 }
 
 const rootDir = path.resolve(__dirname, '..', '..', '..');
@@ -52,5 +56,9 @@ export const env: EnvConfig = {
   },
   queue: {
     name: process.env.TASK_QUEUE_NAME ?? 'task-processing-queue',
+  },
+  pricing: {
+    min: Number(process.env.TASK_PRICE_MIN ?? 5),
+    max: Number(process.env.TASK_PRICE_MAX ?? 50),
   },
 };

@@ -2,7 +2,7 @@
   "name": "image-processing-api",
   "version": "0.1.0",
   "description": "REST API for image processing tasks with Node.js, TypeScript, Express, MongoDB, and Redis workers",
-  "author": "",
+  "author": "devnielo",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/main.js",
@@ -16,8 +16,7 @@
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "seed": "dotenv -e .env -- ts-node --project tsconfig.json scripts/seed.ts",
-    "prepare": "husky install"
+    "seed": "bash scripts/seed-mongo.sh"
   },
   "dependencies": {
     "axios": "^1.7.4",
@@ -53,7 +52,6 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
-    "husky": "^9.1.1",
     "jest": "^29.7.0",
     "lint-staged": "^15.2.7",
     "mongodb-memory-server": "^10.1.4",

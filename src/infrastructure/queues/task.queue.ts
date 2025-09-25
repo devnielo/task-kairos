@@ -1,6 +1,5 @@
-import { Job, Queue } from 'bullmq';
+import { Queue } from 'bullmq';
 
-import { CreateTaskParams } from '@/domain/repositories/task-repository';
 import { env } from '@/shared/config/env';
 import { logger } from '@/shared/logger';
 
@@ -11,36 +10,41 @@ export interface TaskQueuePayload {
   originalPath: string;
 }
 
-export const taskQueue = new Queue<TaskQueuePayload>(env.queue.name, {
-  connection: redisConnectionOptions,
-  defaultJobOptions: {
-    attempts: 3,
-    removeOnComplete: true,
-    removeOnFail: false,
-    backoff: {
-      type: 'exponential',
-      delay: 5000,
-    },
-  },
-});
+const shouldUseQueue = env.node.env !== 'test';
 
-export const enqueueTaskProcessing = async (
-  task: CreateTaskParams & { id: string },
-): Promise<Job<TaskQueuePayload>> => {
-  const job = await taskQueue.add(
+const taskQueue = shouldUseQueue
+  ? new Queue<TaskQueuePayload>(env.queue.name, {
+      connection: redisConnectionOptions,
+      defaultJobOptions: {
+        attempts: 3,
+        removeOnComplete: true,
+        removeOnFail: false,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      },
+    })
+  : null;
+
+export const enqueueTaskProcessing = async (payload: TaskQueuePayload): Promise<void> => {
+  if (!taskQueue) {
+    logger.debug({ taskId: payload.taskId }, 'Task queue disabled; skipping enqueue');
+    return;
+  }
+
+  await taskQueue.add(
     'process-task',
     {
-      taskId: task.id,
-      originalPath: task.originalPath,
+      taskId: payload.taskId,
+      originalPath: payload.originalPath,
     },
     {
-      jobId: task.id,
+      jobId: payload.taskId,
       delay: 0,
       attempts: 3,
     },
   );
 
-  logger.info({ jobId: job.id, taskId: task.id }, 'Task enqueued for processing');
-
-  return job;
+  logger.info({ taskId: payload.taskId }, 'Task enqueued for processing');
 };

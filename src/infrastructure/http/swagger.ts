@@ -11,8 +11,8 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: '/api',
-      description: 'Base API path',
+      url: '/',
+      description: 'Current host',
     },
   ],
 };
