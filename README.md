@@ -118,7 +118,7 @@ Retrieve task details.
 
 ### Processing flow
 
-Reference flow diagram (TODO:update image assets): [https://example.com/](https://example.com/)
+![Processing flow](assets/images/workflow.png)
 
 - **Request submission**. The client calls `POST /api/tasks`; `CreateTaskUseCase` validates input, assigns a price, persists the task as `pending`, and enqueues it in BullMQ (Redis).
 - **Job consumption**. `task.worker.ts` pulls jobs from the queue, marks tasks as `processing`, downloads the original image (local path or URL), and invokes `SharpImageProcessingService`.
